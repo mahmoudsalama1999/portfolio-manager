@@ -45,11 +45,12 @@ function renderDash(){
  let byToRows=Object.keys(t.byTo).map(k=>row('عمولة: '+esc(k),money(t.byTo[k]))).join('');
  box.innerHTML=`
  <div class="hero"><div class="k">إجمالي المحافظ (أصول + كاش)</div><div class="v">${money(t.total)}</div>
-  <div class="sub"><div><span>قيمة الأصول القائمة</span><b>${money(t.assetsValue)}</b></div><div><span>الكاش المتاح</span><b>${money(t.cash)}</b></div>
+  <div class="sub"><div><span>قيمة الأصول القائمة</span><b>${money(t.assetsValue)}</b></div><div><span>الكاش الواصل</span><b>${money(t.cash)}</b></div><div><span>دفعات مؤجلة (لسه جاية)</span><b>${money(t.pending)}</b></div>
   <div><span>العملاء</span><b>${t.clients}</b></div><div><span>الأصول القائمة</span><b>${t.assetsCount}</b></div></div></div>
  <div class="card"><h2>عمولاتك وأوفر برايس</h2>
-  ${row('إجمالي العمولات',money(t.commissions),'gold')}
-  ${row('إجمالي الأوفر برايس',money(t.overs),'gold')}
+  ${row('إجمالي أرباح المكتب (عمولات + أوفر)',money(t.earnings),'gold')}
+  ${row('إجمالي العمولات',money(t.commissions))}
+  ${row('إجمالي الأوفر برايس',money(t.overs))}
   ${row('عمولات الشهر ده',money(m.comm))}
   ${row('عمولات السنة دي',money(y.comm))}
   ${byToRows||''}
@@ -57,7 +58,7 @@ function renderDash(){
  </div>
  <div class="card"><h2>ملخص كل عميل</h2>${DB.clients.map(c=>{const x=C.clientTotals(DB,c.id);
   return `<div class="item"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
-  <div class="meta">أصول ${x.assetsCount} · كاش ${money(x.cash)} · صفقات ${x.dealsCount}</div></div>`}).join('')||'<div class="empty">لا يوجد عملاء بعد</div>'}</div>`;
+  <div class="meta">أصول ${x.assetsCount} · كاش ${money(x.cash)}${x.pending?' · مؤجل '+money(x.pending):''} · صفقات ${x.dealsCount}</div></div>`}).join('')||'<div class="empty">لا يوجد عملاء بعد</div>'}</div>`;
 }
 $('dbody').onclick=e=>{const o=e.target.dataset.open;if(o){e.preventDefault();openClient(o)}};
 // export / import
@@ -71,7 +72,7 @@ $('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new 
 function renderClients(){
  $('clist').innerHTML=DB.clients.length?DB.clients.map(c=>{const x=C.clientTotals(DB,c.id);
   return `<div class="item"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
-  <div class="meta">${c.phone?esc(c.phone)+' · ':''}أصول ${x.assetsCount} · كاش ${money(x.cash)}</div>
+  <div class="meta">${c.phone?esc(c.phone)+' · ':''}أصول ${x.assetsCount} · كاش ${money(x.cash)}${x.pending?' · مؤجل '+money(x.pending):''}</div>
   <div class="tools"><button data-edit="${c.id}">تعديل</button><button class="del" data-del="${c.id}">حذف</button></div></div>`}).join('')
   :'<div class="empty">لا يوجد عملاء بعد. ضيف أول عميل من الفورم فوق.</div>'}
 $('clist').onclick=e=>{const o=e.target.dataset.open,ed=e.target.dataset.del,ee=e.target.dataset.edit;
@@ -97,8 +98,8 @@ function renderDetail(){
  const c=client(CUR_C);if(!c)return $('backToList').onclick();
  const x=C.clientTotals(DB,CUR_C);
  $('pdetail').innerHTML=`<div class="hero"><div class="k">${esc(c.name)}${c.phone?' · '+esc(c.phone):''}</div><div class="v">${money(x.total)}</div>
-  <div class="sub"><div><span>قيمة الأصول</span><b>${money(x.assetsValue)}</b></div><div><span>الكاش</span><b>${money(x.cash)}</b></div>
-  <div><span>عمولات من صفقاته</span><b>${money(x.commissions)}</b></div><div><span>أوفر برايس</span><b>${money(x.overs)}</b></div></div></div>`;
+  <div class="sub"><div><span>قيمة الأصول</span><b>${money(x.assetsValue)}</b></div><div><span>الكاش الواصل</span><b>${money(x.cash)}</b></div>
+  <div><span>دفعات مؤجلة (لسه جاية)</span><b>${money(x.pending)}</b></div><div><span>عمولات من صفقاته</span><b>${money(x.commissions)}</b></div><div><span>أوفر برايس</span><b>${money(x.overs)}</b></div></div></div>`;
  // assets list
  const assets=DB.assets.filter(a=>a.cid===CUR_C);
  $('alist').innerHTML=assets.length?assets.map(a=>{const v=a.curValue!=null?a.curValue:a.buyPrice;
@@ -111,9 +112,9 @@ function renderDetail(){
  const items=[...DB.deposits.filter(d=>d.cid===CUR_C).map(d=>({t:dateTs(d.date),k:'dep',d})),
               ...DB.deals.filter(d=>d.cid===CUR_C).map(d=>({t:dateTs(d.date),k:'deal',d}))].sort((a,b)=>b.t-a.t);
  $('dlist').innerHTML=items.length?items.map(it=>{
-  if(it.k==='dep'){const d=it.d;return `<div class="item"><div class="top"><span class="nm">دفعة كاش<span class="badge b-dep">إيداع</span></span><b class="pos">+${money(d.amount)}</b></div>
-   <div class="meta">${d.date}${d.note?' · '+esc(d.note):''}</div>
-   <div class="tools"><button class="del" data-depdel="${d.id}">حذف</button></div></div>`}
+  if(it.k==='dep'){const d=it.d,pe=d.status==='pending';return `<div class="item"><div class="top"><span class="nm">${pe?'دفعة مؤجلة':'دفعة كاش'}<span class="badge ${pe?'b-sale':'b-dep'}">${pe?'مؤجلة':'وصلت'}</span></span><b class="${pe?'':'pos'}">${pe?'':'+'}${money(d.amount)}</b></div>
+   <div class="meta">${pe?'ميعاد الاستحقاق ':''}${d.date}${d.note?' · '+esc(d.note):''}</div>
+   <div class="tools">${pe?`<button data-deprecv="${d.id}">تم الاستلام</button>`:''}<button class="del" data-depdel="${d.id}">حذف</button></div></div>`}
   const d=it.d,cc=C.dealCalc(d),sell=d.kind==='sell';
   return `<div class="item"><div class="top"><span class="nm">${esc(d.assetName||'صفقة')}<span class="badge ${sell?'b-sell':'b-buy'}">${sell?'بيع':'شراء'}</span></span><b>${money(d.price)}</b></div>
   <div class="meta">${d.date} · ${sell?'صافي العميل '+money(cc.clientNet):'إجمالي الخارج '+(cc.clientNet!=null?money(cc.clientNet):'—')}</div>
@@ -135,14 +136,14 @@ $('afSave').onclick=()=>{const n=$('afName').value.trim();if(!n)return alert('ا
 // ===== deposit =====
 $('dfDate').value=today();
 $('dfSave').onclick=()=>{const a=parse('dfAmount');if(a==null||Number.isNaN(a)||!(a>0))return alert('اكتب مبلغ الدفعة');
- DB.deposits.push({id:nid('d'),cid:CUR_C,date:$('dfDate').value||today(),amount:a,note:$('dfNote').value.trim()});
- save();$('dfAmount').value='';$('dfNote').value='';renderDetail();renderDash()};
+ DB.deposits.push({id:nid('d'),cid:CUR_C,date:$('dfDate').value||today(),amount:a,status:$('dfStatus').value,note:$('dfNote').value.trim()});
+ save();$('dfAmount').value='';$('dfNote').value='';$('dfStatus').value='received';renderDetail();renderDash()};
 // ===== deal form =====
 $('dlDate').value=today();
 function fillDealAssets(){const sell=$('dlKind').value==='sell';
  $('dlAssetBox').style.display=sell?'':'none';$('dlNewBox').style.display=sell?'none':'';
- $('dlTargetBox').style.display=sell?'':'none';
- $('dlPriceLbl').textContent=sell?'سعر البيع الفعلي':'سعر الشراء';
+ $('dlTargetLbl').innerHTML=sell?'السعر المطلوب من العميل <small>(أي زيادة فوقه = أوفر برايس ليك)</small>':'سعر الشراء الفعلي من البائع <small>(لو بعتهولو بأكتر، الفرق = أوفر برايس ليك)</small>';
+ $('dlPriceLbl').textContent=sell?'سعر البيع الفعلي':'السعر اللي العميل بيدفعه';
  const list=DB.assets.filter(a=>a.cid===CUR_C&&a.status!=='sold');
  $('dlAsset').innerHTML='<option value="">— اختياري، اختار أصل مسجل —</option>'+list.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}
 document.querySelectorAll('#dlKindChips button').forEach(b=>b.onclick=()=>{
@@ -153,8 +154,8 @@ function previewDeal(){const box=$('dlCalc');box.textContent='';
  const d={kind:$('dlKind').value,price,target:parse('dlTarget'),commType:$('dlCommType').value,commVal:parse('dlCommVal')};
  const c=C.dealCalc(d),parts=[];
  if(c.commission!=null)parts.push('العمولة: '+money(c.commission));
+ if(c.over)parts.push('الأوفر برايس: '+money(c.over));
  if($('dlKind').value==='sell'){
-  if(c.over)parts.push('الأوفر برايس: '+money(c.over));
   if(c.clientNet!=null)parts.push('صافي العميل: '+money(c.clientNet));
  }else if(c.clientNet!=null)parts.push('إجمالي الخارج من كاش العميل: '+money(c.clientNet));
  box.textContent=parts.join('  |  ')}
@@ -180,7 +181,8 @@ $('alist').onclick=e=>{const ed=e.target.dataset.aedit,dl=e.target.dataset.adel;
   $('afBuyDate').value=a.buyDate||'';$('afCur').value=a.curValue!=null?group(a.curValue):'';$('afNotes').value=a.notes||'';
   $('aformTitle').textContent='تعديل أصل';$('afCancel').style.display='';$('afName').scrollIntoView()}
  if(dl&&confirm('حذف الأصل ده؟')){DB.assets=DB.assets.filter(x=>x.id!==dl);save();renderDetail();renderDash()}};
-$('dlist').onclick=e=>{const dd=e.target.dataset.depdel,xd=e.target.dataset.dldel;
+$('dlist').onclick=e=>{const dd=e.target.dataset.depdel,xd=e.target.dataset.dldel,rv=e.target.dataset.deprecv;
+ if(rv){const x=DB.deposits.find(y=>y.id===rv);if(x&&confirm('تأكيد إن الدفعة دي وصلت واتحولت لكاش؟')){x.status='received';x.date=today();save();renderDetail();renderDash()}}
  if(dd&&confirm('حذف الدفعة دي؟')){DB.deposits=DB.deposits.filter(x=>x.id!==dd);save();renderDetail();renderDash()}
  if(xd&&confirm('حذف الصفقة دي؟ (حالة الأصل مش هترجع تلقائيا)')){DB.deals=DB.deals.filter(x=>x.id!==xd);save();renderDetail();renderDash();renderComm()}};
 // ===== commissions tab =====
@@ -195,7 +197,7 @@ function renderComm(){
  <div class="meta">${esc(clientName(d.cid))} · ${d.date} · لـ ${esc(d.commTo||'أنا')}${c.over?' · أوفر '+money(c.over):''}</div></div>`}).join('')||'<div class="empty">لا توجد صفقات.</div>'}</div>`}
 $('mfilter').onclick=e=>{if(e.target.dataset.p!=null){MF=e.target.dataset.p;renderComm()}};
 // ===== share image =====
-$('shareimg').onclick=()=>{const t=C.dashboard(DB),W=1080,rows=[['قيمة الأصول',money(t.assetsValue)],['الكاش المتاح',money(t.cash)],['إجمالي العمولات',money(t.commissions)],['إجمالي الأوفر برايس',money(t.overs)],['العملاء',String(t.clients)],['الصفقات',String(t.dealsCount)]];
+$('shareimg').onclick=()=>{const t=C.dashboard(DB),W=1080,rows=[['قيمة الأصول',money(t.assetsValue)],['الكاش الواصل',money(t.cash)],['دفعات مؤجلة',money(t.pending)],['إجمالي العمولات',money(t.commissions)],['إجمالي الأوفر برايس',money(t.overs)],['أرباح المكتب',money(t.earnings)],['العملاء',String(t.clients)],['الصفقات',String(t.dealsCount)]];
  const H=420+rows.length*84+100,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
  const F='-apple-system,"SF Arabic","Segoe UI",Tahoma,Arial,sans-serif';c.direction='rtl';
  c.fillStyle='#F3F5F9';c.fillRect(0,0,W,H);const g=c.createLinearGradient(0,0,W,380);g.addColorStop(0,'#0F1B33');g.addColorStop(1,'#17294A');c.fillStyle=g;c.fillRect(0,0,W,380);
