@@ -57,10 +57,10 @@ function renderDash(){
   ${row('عدد الصفقات المسجلة',fmt(t.dealsCount))}
  </div>
  <div class="card"><h2>ملخص كل عميل</h2>${DB.clients.map(c=>{const x=C.clientTotals(DB,c.id);
-  return `<div class="item"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
+  return `<div class="item tap" data-card="${c.id}"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
   <div class="meta">أصول ${x.assetsCount} · كاش ${money(x.cash)}${x.pending?' · مؤجل '+money(x.pending):''} · صفقات ${x.dealsCount}</div></div>`}).join('')||'<div class="empty">لا يوجد عملاء بعد</div>'}</div>`;
 }
-$('dbody').onclick=e=>{const o=e.target.dataset.open;if(o){e.preventDefault();openClient(o)}};
+$('dbody').onclick=e=>{let o=e.target.dataset.open;if(!o){const cd=e.target.closest('[data-card]');if(cd)o=cd.dataset.card}if(o){e.preventDefault();openClient(o)}};
 // export / import
 $('export').onclick=()=>{const b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='portfolio-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove()};
 $('import').onclick=()=>$('importFile').click();
@@ -71,11 +71,12 @@ $('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new 
 // ===== clients =====
 function renderClients(){
  $('clist').innerHTML=DB.clients.length?DB.clients.map(c=>{const x=C.clientTotals(DB,c.id);
-  return `<div class="item"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
+  return `<div class="item tap" data-card="${c.id}"><div class="top"><span class="nm"><a href="#" data-open="${c.id}">${esc(c.name)}</a></span><b>${money(x.total)}</b></div>
   <div class="meta">${c.phone?esc(c.phone)+' · ':''}أصول ${x.assetsCount} · كاش ${money(x.cash)}${x.pending?' · مؤجل '+money(x.pending):''}</div>
-  <div class="tools"><button data-edit="${c.id}">تعديل</button><button class="del" data-del="${c.id}">حذف</button></div></div>`}).join('')
+  <div class="tools"><button data-open="${c.id}">فتح</button><button data-edit="${c.id}">تعديل</button><button class="del" data-del="${c.id}">حذف</button></div></div>`}).join('')
   :'<div class="empty">لا يوجد عملاء بعد. ضيف أول عميل من الفورم فوق.</div>'}
-$('clist').onclick=e=>{const o=e.target.dataset.open,ed=e.target.dataset.del,ee=e.target.dataset.edit;
+$('clist').onclick=e=>{let o=e.target.dataset.open,ed=e.target.dataset.del,ee=e.target.dataset.edit;
+ if(!o&&!ed&&!ee&&!e.target.closest('button')){const cd=e.target.closest('[data-card]');if(cd)o=cd.dataset.card}
  if(o){e.preventDefault();openClient(o);return}
  if(ee){const c=client(ee);$('cfId').value=c.id;$('cfName').value=c.name;$('cfPhone').value=c.phone||'';$('cfNotes').value=c.notes||'';
   $('cformTitle').textContent='تعديل عميل';$('cfCancel').style.display='';scrollTo(0,0);return}
@@ -99,7 +100,9 @@ function renderDetail(){
  const x=C.clientTotals(DB,CUR_C);
  $('pdetail').innerHTML=`<div class="hero"><div class="k">${esc(c.name)}${c.phone?' · '+esc(c.phone):''}</div><div class="v">${money(x.total)}</div>
   <div class="sub"><div><span>قيمة الأصول</span><b>${money(x.assetsValue)}</b></div><div><span>الكاش الواصل</span><b>${money(x.cash)}</b></div>
-  <div><span>دفعات مؤجلة (لسه جاية)</span><b>${money(x.pending)}</b></div><div><span>عمولات من صفقاته</span><b>${money(x.commissions)}</b></div><div><span>أوفر برايس</span><b>${money(x.overs)}</b></div></div></div>`;
+  <div><span>دفعات مؤجلة (لسه جاية)</span><b>${money(x.pending)}</b></div><div><span>عمولات من صفقاته</span><b>${money(x.commissions)}</b></div><div><span>أوفر برايس</span><b>${money(x.overs)}</b></div></div>
+  <div style="margin-top:12px"><button id="editThis" style="background:#D4AD36;color:#0F1B33;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-family:inherit">تعديل بيانات العميل</button></div></div>`;
+ $('editThis').onclick=()=>{$('backToList').onclick();const ed=client(c.id);$('cfId').value=ed.id;$('cfName').value=ed.name;$('cfPhone').value=ed.phone||'';$('cfNotes').value=ed.notes||'';$('cformTitle').textContent='تعديل عميل';$('cfCancel').style.display='';scrollTo(0,0)};
  // assets list
  const assets=DB.assets.filter(a=>a.cid===CUR_C);
  $('alist').innerHTML=assets.length?assets.map(a=>{const v=a.curValue!=null?a.curValue:a.buyPrice;
