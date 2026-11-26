@@ -124,6 +124,7 @@ input:focus,select:focus{outline:0;border-color:var(--gold)}
   <div class="card"><h2>إضافة دفعة كاش من العميل</h2>
    <div class="row"><div><label>التاريخ</label><input id="dfDate" type="date"></div>
    <div><label>المبلغ</label><input id="dfAmount" inputmode="decimal" placeholder="500,000"></div></div>
+   <label>حالة الدفعة</label><select id="dfStatus"><option value="received">وصلت (كاش معايا)</option><option value="pending">مؤجلة (لسه هتتدفع في التاريخ ده)</option></select>
    <label>ملاحظة <small>(اختياري)</small></label><input id="dfNote" type="text" placeholder="الدفعة الأولى">
    <div class="actions" style="margin-top:14px"><button id="dfSave" class="p">تسجيل الدفعة</button></div>
   </div>
@@ -135,7 +136,7 @@ input:focus,select:focus{outline:0;border-color:var(--gold)}
    <div id="dlAssetBox"><label>الأصل المباع</label><select id="dlAsset"></select></div>
    <div id="dlNewBox" style="display:none"><label>اسم الأصل المشترى (هيتسجل كأصل جديد)</label><input id="dlNewName" type="text" placeholder="مثال: محل التجمع"></div>
    <label id="dlPriceLbl">سعر البيع الفعلي</label><input id="dlPrice" inputmode="decimal" placeholder="5,500,000">
-   <div id="dlTargetBox"><label>السعر المطلوب من العميل <small>(أي زيادة فوقه = أوفر برايس ليك)</small></label><input id="dlTarget" inputmode="decimal" placeholder="5,000,000"></div>
+   <div id="dlTargetBox"><label id="dlTargetLbl">السعر المطلوب من العميل <small>(أي زيادة فوقه = أوفر برايس ليك)</small></label><input id="dlTarget" inputmode="decimal" placeholder="5,000,000"></div>
    <div class="row"><div><label>العمولة</label><select id="dlCommType"><option value="pct">نسبة %</option><option value="fixed">مبلغ ثابت</option><option value="">بدون عمولة</option></select></div>
    <div><label>قيمة العمولة</label><input id="dlCommVal" inputmode="decimal" placeholder="2.5"></div></div>
    <div class="row"><div><label>العمولة لمين</label><input id="dlCommTo" type="text" value="أنا"></div>
