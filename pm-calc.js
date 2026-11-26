@@ -10,7 +10,7 @@ function dealCalc(d){
   commission=d.commType==='pct'?S*d.commVal/100:d.commVal;
  }
  let over=null;
- if(d.kind==='sell'){
+ {
   if(d.overprice!=null&&Number.isFinite(d.overprice))over=d.overprice;
   else if(S!=null&&Number.isFinite(S)&&d.target!=null&&Number.isFinite(d.target)&&S>d.target)over=S-d.target;
  }
@@ -28,7 +28,9 @@ function clientTotals(db,cid){
  const assets=db.assets.filter(a=>a.cid===cid&&a.status!=='sold');
  const soldCount=db.assets.filter(a=>a.cid===cid&&a.status==='sold').length;
  const assetsValue=assets.reduce((s,a)=>s+val(a),0);
- const deposits=db.deposits.filter(x=>x.cid===cid).reduce((s,x)=>s+(x.amount||0),0);
+ const dl=db.deposits.filter(x=>x.cid===cid);
+ const deposits=dl.filter(x=>x.status!=='pending').reduce((s,x)=>s+(x.amount||0),0);
+ const pending=dl.filter(x=>x.status==='pending').reduce((s,x)=>s+(x.amount||0),0);
  let cashSales=0,cashBuys=0,commissions=0,overs=0,dealsCount=0;
  const byTo={};
  for(const d of db.deals.filter(x=>x.cid===cid)){
@@ -38,15 +40,15 @@ function clientTotals(db,cid){
   if(c.over)overs+=c.over;
  }
  const cash=deposits+cashSales-cashBuys;
- return {assetsCount:assets.length,soldCount,assetsValue,deposits,cashSales,cashBuys,cash,commissions,overs,byTo,dealsCount,total:assetsValue+cash};
+ return {assetsCount:assets.length,soldCount,assetsValue,deposits,pending,earnings:commissions+overs,cashSales,cashBuys,cash,commissions,overs,byTo,dealsCount,total:assetsValue+cash};
 }
 
 // إجماليات كل العملاء
 function dashboard(db){
- const t={clients:db.clients.length,assetsCount:0,assetsValue:0,cash:0,commissions:0,overs:0,dealsCount:0,byTo:{}};
+ const t={clients:db.clients.length,assetsCount:0,assetsValue:0,cash:0,pending:0,earnings:0,commissions:0,overs:0,dealsCount:0,byTo:{}};
  for(const c of db.clients){
   const x=clientTotals(db,c.id);
-  t.assetsCount+=x.assetsCount;t.assetsValue+=x.assetsValue;t.cash+=x.cash;
+  t.assetsCount+=x.assetsCount;t.assetsValue+=x.assetsValue;t.cash+=x.cash;t.pending+=x.pending;t.earnings+=x.earnings;
   t.commissions+=x.commissions;t.overs+=x.overs;t.dealsCount+=x.dealsCount;
   for(const k in x.byTo)t.byTo[k]=(t.byTo[k]||0)+x.byTo[k];
  }
