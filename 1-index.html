@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F1B33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="المحافظ">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<script>try{var t=localStorage.getItem('pm-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>إدارة المحافظ العقارية</title>
+<style>
+:root{--navy:#0F1B33;--navy2:#17294A;--gold:#D4AD36;--bg:#F3F5F9;--card:#fff;--ink:#14213D;--mut:#6A7488;--line:#E3E7EF;--ok:#14804A;--bad:#C0392B;--inp:#FAFBFD;--btn:#fff;--btnink:#0F1B33;--errbg:#FDECEA;--h2:#0F1B33;--shadow:0 1px 3px rgba(15,27,51,.07);color-scheme:light}
+[data-theme=dark]{--bg:#0A1222;--card:#13203A;--ink:#E8EDF7;--mut:#93A0BA;--line:#25365A;--bad:#FF7A6B;--inp:#0E1A30;--btn:#13203A;--btnink:#E8EDF7;--errbg:#3A1E24;--h2:#E8EDF7;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Arabic","Segoe UI",Tahoma,sans-serif;font-size:16px;line-height:1.5;padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
+header{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 18px 18px;position:relative}
+header h1{margin:0;font-size:20px}header h1 b{color:var(--gold)}header p{margin:2px 0 0;color:#B9C3D9;font-size:13px}
+#top{position:sticky;top:0;z-index:5;background:var(--navy)}
+nav{display:flex;gap:6px;padding:0 12px 10px}
+nav button{flex:1;border:0;background:transparent;color:#B9C3D9;font:600 14px inherit;font-family:inherit;padding:10px 4px;border-radius:10px}
+nav button.on{background:var(--gold);color:var(--navy)}
+#theme{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:14px;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:18px;border-radius:50%;width:38px;height:38px}
+main{padding:14px;max-width:640px;margin:auto}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 12px;font-size:15px;color:var(--h2);display:flex;align-items:center;gap:8px}
+.card h2:before{content:"";width:4px;height:16px;background:var(--gold);border-radius:2px}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px;font-weight:600}
+label small{font-weight:400}
+input,select{width:100%;font:inherit;font-size:17px;padding:11px 12px;border:1.5px solid var(--line);border-radius:11px;background:var(--inp);color:var(--ink);direction:ltr;text-align:right}
+select,input[type=text],input[type=date]{direction:rtl}
+input:focus,select:focus{outline:0;border-color:var(--gold)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;border-radius:16px;padding:18px;margin-bottom:14px}
+.hero .k{color:#B9C3D9;font-size:13px}.hero .v{font-size:30px;font-weight:800;color:var(--gold);margin-top:2px}
+.hero .sub{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;border-top:1px solid rgba(255,255,255,.15);padding-top:12px}
+.hero .sub div span{display:block;color:#B9C3D9;font-size:12px}.hero .sub div b{font-size:17px}
+.m{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.m:last-child{border:0}.m .n{font-size:14px}.m .val{font-weight:700;font-variant-numeric:tabular-nums;text-align:left;white-space:nowrap;direction:ltr}
+.m .na{font-weight:400;color:var(--mut);font-size:12px;text-align:left;direction:rtl;white-space:normal}
+.neg{color:var(--bad)}.pos{color:var(--ok)}.gold{color:var(--gold)}
+.err{background:var(--errbg);color:var(--bad);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chips button{border:1.5px solid var(--line);background:var(--btn);font:600 13px inherit;font-family:inherit;padding:7px 13px;border-radius:20px;color:var(--ink)}
+.chips button.on{background:var(--gold);color:#0F1B33;border-color:var(--gold)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1;min-width:28%;padding:12px 4px;border-radius:12px;border:1.5px solid var(--btnink);background:var(--btn);color:var(--btnink);font:700 15px inherit;font-family:inherit}
+.actions button.p{background:var(--gold);color:#0F1B33;border-color:var(--gold)}
+.note{color:var(--mut);font-size:12px;margin:6px 4px}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:12px;padding:2px 9px;margin-inline-start:6px;vertical-align:middle}
+.b-act{background:#E7F4EC;color:var(--ok)}[data-theme=dark] .b-act{background:#12352A;color:#7BD7A8}
+.b-sale{background:#FBF3DC;color:#8A6D1F}[data-theme=dark] .b-sale{background:#3A3018;color:#E3C766}
+.b-sold{background:#EFEAF7;color:#5B3E91}[data-theme=dark] .b-sold{background:#2A2140;color:#B79BE8}
+.b-buy{background:#E8EEFB;color:#2A4A8F}[data-theme=dark] .b-buy{background:#1B2C4F;color:#8FAEF0}
+.b-sell{background:#FDECEA;color:var(--bad)}[data-theme=dark] .b-sell{background:#3A1E24;color:#FF9A8B}
+.b-dep{background:#E7F0F7;color:#23608F}[data-theme=dark] .b-dep{background:#12293C;color:#7FB8E8}
+.item{border-bottom:1px solid var(--line);padding:12px 0}
+.item:last-child{border:0}
+.item .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.item .nm{font-weight:700;font-size:15px}
+.item .nm a{color:inherit;text-decoration:none}
+.item .meta{color:var(--mut);font-size:12px;margin-top:2px}
+.item .nums{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.item .nums b{font-variant-numeric:tabular-nums;direction:ltr}
+.item .tools{margin-top:8px;display:flex;gap:8px}
+.item .tools button{border:1px solid var(--line);background:var(--btn);color:var(--mut);font:600 12px inherit;font-family:inherit;padding:5px 12px;border-radius:9px}
+.item .tools button.del{color:var(--bad)}
+.empty{color:var(--mut);font-size:14px;text-align:center;padding:18px 8px}
+.backbtn{border:1.5px solid var(--line);background:var(--btn);color:var(--ink);font:700 14px inherit;font-family:inherit;padding:9px 16px;border-radius:11px;margin-bottom:12px}
+@media print{header,nav,.actions,.chips,.backbtn{display:none}}
+</style>
+</head>
+<body>
+<header><button id="theme" aria-label="الوضع الليلي">🌙</button><h1>إدارة <b>المحافظ العقارية</b></h1><p>أملاك عملائك وكاشهم وصفقاتهم وعمولتك، كلها في مكان واحد على جهازك</p></header>
+<div id="top"><nav><button data-t="d" class="on">الرئيسية</button><button data-t="p">العملاء</button><button data-t="m">العمولات</button></nav></div>
+<main>
+
+<!-- الرئيسية -->
+<section id="d" class="on">
+ <div id="dbody"></div>
+ <div class="actions">
+  <button id="shareimg" class="p">مشاركة الملخص كصورة</button>
+  <button id="export">نسخة احتياطية</button>
+  <button id="import">استيراد نسخة</button>
+  <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+ </div>
+ <p class="note">كل البيانات بتتحفظ على جهازك فقط. اعمل نسخة احتياطية كل فترة، خصوصا قبل مسح بيانات المتصفح أو تغيير الموبايل.</p>
+</section>
+
+<!-- العملاء -->
+<section id="p">
+ <div id="plistView">
+  <div id="perr"></div>
+  <div class="card"><h2 id="cformTitle">إضافة عميل</h2>
+   <input type="hidden" id="cfId">
+   <label>اسم العميل</label><input id="cfName" type="text" placeholder="مثال: أحمد محمد">
+   <div class="row"><div><label>التليفون <small>(اختياري)</small></label><input id="cfPhone" inputmode="tel" placeholder="010..."></div>
+   <div><label>ملاحظات <small>(اختياري)</small></label><input id="cfNotes" type="text" placeholder="أي تفاصيل"></div></div>
+   <div class="actions" style="margin-top:14px"><button id="cfSave" class="p">حفظ العميل</button><button id="cfCancel" style="display:none">إلغاء التعديل</button></div>
+  </div>
+  <div class="card"><h2>العملاء</h2><div id="clist"></div></div>
+ </div>
+
+ <div id="pdetailView" style="display:none">
+  <button class="backbtn" id="backToList">→ رجوع لكل العملاء</button>
+  <div id="pdetail"></div>
+
+  <div class="card"><h2 id="aformTitle">إضافة أصل (عقار)</h2>
+   <input type="hidden" id="afId">
+   <label>اسم أو كود الأصل</label><input id="afName" type="text" placeholder="مثال: شقة شيراتون 12">
+   <div class="row"><div><label>النوع</label><select id="afType"><option>شقة</option><option>محل</option><option>أرض</option><option>فيلا</option><option>دوبلكس</option><option>مكتب</option><option>أخرى</option></select></div>
+   <div><label>الحالة</label><select id="afStatus"><option value="active">مملوك</option><option value="sale">معروض للبيع</option><option value="sold">مباع</option></select></div></div>
+   <div class="row"><div><label>المساحة (م²)</label><input id="afArea" inputmode="decimal" placeholder="120"></div>
+   <div><label>المنطقة / المجال</label><input id="afLoc" type="text" placeholder="مساكن شيراتون"></div></div>
+   <div class="row"><div><label>سعر الشراء</label><input id="afBuy" inputmode="decimal" placeholder="3,000,000"></div>
+   <div><label>تاريخ الشراء</label><input id="afBuyDate" type="date"></div></div>
+   <label>القيمة الحالية <small>(لو فاضية بنحسبها = سعر الشراء)</small></label><input id="afCur" inputmode="decimal" placeholder="3,600,000">
+   <label>ملاحظات <small>(اختياري)</small></label><input id="afNotes" type="text" placeholder="أي تفاصيل">
+   <div class="actions" style="margin-top:14px"><button id="afSave" class="p">حفظ الأصل</button><button id="afCancel" style="display:none">إلغاء التعديل</button></div>
+  </div>
+
+  <div class="card"><h2>إضافة دفعة كاش من العميل</h2>
+   <div class="row"><div><label>التاريخ</label><input id="dfDate" type="date"></div>
+   <div><label>المبلغ</label><input id="dfAmount" inputmode="decimal" placeholder="500,000"></div></div>
+   <label>ملاحظة <small>(اختياري)</small></label><input id="dfNote" type="text" placeholder="الدفعة الأولى">
+   <div class="actions" style="margin-top:14px"><button id="dfSave" class="p">تسجيل الدفعة</button></div>
+  </div>
+
+  <div class="card"><h2>تسجيل صفقة (بيع / شراء)</h2>
+   <div id="dlerr"></div>
+   <div class="chips" id="dlKindChips" style="margin-bottom:4px"><button data-k="sell" class="on">بيع</button><button data-k="buy">شراء</button></div>
+   <input type="hidden" id="dlKind" value="sell">
+   <div id="dlAssetBox"><label>الأصل المباع</label><select id="dlAsset"></select></div>
+   <div id="dlNewBox" style="display:none"><label>اسم الأصل المشترى (هيتسجل كأصل جديد)</label><input id="dlNewName" type="text" placeholder="مثال: محل التجمع"></div>
+   <label id="dlPriceLbl">سعر البيع الفعلي</label><input id="dlPrice" inputmode="decimal" placeholder="5,500,000">
+   <div id="dlTargetBox"><label>السعر المطلوب من العميل <small>(أي زيادة فوقه = أوفر برايس ليك)</small></label><input id="dlTarget" inputmode="decimal" placeholder="5,000,000"></div>
+   <div class="row"><div><label>العمولة</label><select id="dlCommType"><option value="pct">نسبة %</option><option value="fixed">مبلغ ثابت</option><option value="">بدون عمولة</option></select></div>
+   <div><label>قيمة العمولة</label><input id="dlCommVal" inputmode="decimal" placeholder="2.5"></div></div>
+   <div class="row"><div><label>العمولة لمين</label><input id="dlCommTo" type="text" value="أنا"></div>
+   <div><label>التاريخ</label><input id="dlDate" type="date"></div></div>
+   <div id="dlCalc" class="note"></div>
+   <label>ملاحظات <small>(اختياري)</small></label><input id="dlNotes" type="text" placeholder="أي تفاصيل">
+   <div class="actions" style="margin-top:14px"><button id="dlSave" class="p">تسجيل الصفقة</button></div>
+  </div>
+
+  <div class="card"><h2>أصول العميل</h2><div id="alist"></div></div>
+  <div class="card"><h2>الدفعات والصفقات</h2><div id="dlist"></div></div>
+ </div>
+</section>
+
+<!-- العمولات -->
+<section id="m">
+ <div class="chips" id="mfilter"></div>
+ <div id="mbody"></div>
+</section>
+
+</main>
+<script src="pm-calc.js"></script><script src="pm-app.js"></script>
+</body></html>
